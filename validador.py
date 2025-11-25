@@ -1,4 +1,4 @@
-import regex as re
+import re
 
 #Expresiones regulares 
 patron_telefono = r"^\s*(\d{9})\s*$"
@@ -19,7 +19,7 @@ def validar_telefono(telefono):
     else:
         return None
 
-#Función nif
+#Función NIF
 def validar_nif(nif):
     
     letras_dni = "TRWAGMYFPDXBNJZSQVHLCKE"
@@ -50,8 +50,8 @@ def validar_nif(nif):
             cadena_num = nif_limpio[1:8]
             letra_final = nif_limpio[8]
 
-            conversion = {"X": "0", "Y": "1", "Z": "2"}
-            cadena_num = conversion[letra_inicio] + cadena_num
+            inicio = {"X": "0", "Y": "1", "Z": "2"}
+            cadena_num = inicio[letra_inicio] + cadena_num
             
             n = int(cadena_num)
 
@@ -63,3 +63,32 @@ def validar_nif(nif):
             else:
                 return None    
 
+def extraer_linea(linea: str):
+
+    partes = linea.split(";")
+    if len(partes) != 6:
+        return None
+    
+    telef_linea = partes[0].strip()
+    nif_linea = partes[1].strip()
+    fecha_linea = partes[2].strip()
+    coord_linea = partes[3].strip()
+    prod_linea = partes[4].strip()
+    precio_linea = partes[5].strip()
+
+    #Normalizar
+    telef_n = validar_telefono(telef_linea)
+    if telef_n is None:
+        return None
+    
+    nif_n = validar_nif(nif_linea)
+    if nif_n is None:
+        return None
+
+    return {
+
+        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_linea, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
+
+
+
+    
