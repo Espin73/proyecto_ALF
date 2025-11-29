@@ -4,9 +4,18 @@ import re
 patron_telefono = r"^\s*(\d{9})\s*$"
 patron_nif = r"^\s*(?:\d{8}[A-Z]|[XYZ]\d{7}[A-Z])\s*$"
 
+patron_fecha1 = r"^\s*\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}\s*$" #Primer formato de la fecha
+patron_fecha2 = r"^[A-Za-z]+\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*[AaPp][Mm]\s*$" #Segundo formato de la fecha
+patron_fecha3 = r"^\s*\d{2}:\d{2}:\d{2}\s+\d{2}/\d{2}/\d{4}\s*$" #Tercer formato de la fecha
+
+
 #Comprobar expresiones regulares
 re_telefono_sucio = re.compile(patron_telefono)
 re_nif_sucio = re.compile(patron_nif)
+
+re_f1_sucia = re.compile(patron_fecha1)
+re_f2_sucia = re.compile(patron_fecha2)
+re_f3_sucia = re.compile(patron_fecha3)
 
 #Función telefono
 def validar_telefono(telefono):
@@ -61,7 +70,90 @@ def validar_nif(nif):
             if letra_final == letra_esperada:
                 return nif_limpio
             else:
-                return None    
+                return None 
+
+
+MESES = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6, "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12,}
+
+def es_bisiesto(a):
+    return (a % 4 == 0 and a % 100 != 0) or (a % 400 == 0)
+
+def dias_meses(m, a):
+    if m in (1,3,5,7,8,10,12):
+        return 31
+    if m in (4,6,9,11):
+        return 30
+    return 29 if es_bisiesto(a) else 28
+
+
+def validar_fecha(fecha: str):
+    fecha_limpia = fecha.strip()
+    coincidencia1 = re_f1_sucia.fullmatch(fecha_limpia)
+    coincidencia2 = re_f2_sucia.fullmatch(fecha_limpia)
+    coincidencia3 = re_f3_sucia.fullmatch(fecha_limpia)
+
+    #Formato 1
+    if coincidencia1:
+
+        fecha_str, hora_str = fecha_limpia.split()
+        a_str, m_str, d_str = fecha_str.split("-")
+        H_str, M_str = hora_str.split(":")
+        S_str = "0"
+
+    #Formato 2
+    elif coincidencia2:
+
+        sin_ampm, ampm = fecha_limpia.rsplit(" ", 1)
+        trozo_fecha, trozo_hora = sin_ampm.rsplit(" ", 1)
+
+        mes_nombre, resto = trozo_fecha.split(" ",1)
+        d_str, a_str = resto.replace(",", " ").split()
+        H_str, M_str = trozo_hora.split(":")
+        S_str = "0"
+        
+        #Por si nos dan un mes que no esté en el formato correcto
+        mes_nombre = mes_nombre.capitalize()
+        if mes_nombre not in MESES:
+            return None
+        m_str = str(MESES[mes_nombre])
+
+        #Para ajustar las horas con lo de AM y PM
+        H_aux = int(H_str)
+        ampm = ampm.lower()
+        if ampm == "pm" and H_aux != 12:
+            H_aux += 12
+        if ampm == "am" and H_aux == 12:
+            H_aux = 0
+        H_str = str(H_aux)
+   
+
+    #Formato 3
+    elif coincidencia3:
+
+        trozo_hora, trozo_fecha = fecha_limpia.split(" ",1)
+
+        H_str, M_str, S_str = trozo_hora.split(":")
+        d_str, m_str, a_str = trozo_fecha.split("/")
+
+    else: 
+        return None
+
+    a = int(a_str)
+    m = int(m_str)
+    d = int(d_str)
+    H = int(H_str)
+    M = int(M_str)
+    S = int(S_str)
+
+    if not (1 <= m <= 12):
+        return None
+    if not (1 <= d <= dias_meses(m, a)):
+        return None
+    if not (0 <= H <= 23 and 0 <= M <= 59 and 0 <= S <= 59):
+        return None
+
+    return {"a": a, "m": m, "d": d, "H": H, "M": M, "S": S}
+
 
 def extraer_linea(linea: str):
 
@@ -76,18 +168,24 @@ def extraer_linea(linea: str):
     prod_linea = partes[4].strip()
     precio_linea = partes[5].strip()
 
-    #Normalizar
+    #Normalizar telef
     telef_n = validar_telefono(telef_linea)
     if telef_n is None:
         return None
     
+    #Normalizar nif
     nif_n = validar_nif(nif_linea)
     if nif_n is None:
         return None
 
+    #Normalizar fecha
+    fecha_n = validar_fecha(fecha_linea)
+    if fecha_n is None:
+        return None
+
     return {
 
-        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_linea, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
+        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha_n": fecha_n, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
 
 
 

@@ -10,6 +10,7 @@ def main():
     comando = sys.argv[1]
     fichero = sys.argv[3]
 
+    #Telefono
     if comando == "-sphone":
 
        telef = validar_telefono(sys.argv[2])
@@ -29,6 +30,7 @@ def main():
        except:
            sys.exit(1)
 
+    #NIF
     elif comando == "-snif":
 
         nif_normalizado = validar_nif(sys.argv[2])
