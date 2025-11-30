@@ -185,7 +185,7 @@ def extraer_linea(linea: str):
 
     return {
 
-        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha_n": fecha_n, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
+        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_n, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
 
 
 
