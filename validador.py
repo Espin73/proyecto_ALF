@@ -8,6 +8,9 @@ patron_fecha1 = r"^\s*\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}\s*$" #Primer formato
 patron_fecha2 = r"^[A-Za-z]+\s+\d{1,2},\s+\d{4}\s+\d{1,2}:\d{2}\s*[AaPp][Mm]\s*$" #Segundo formato de la fecha
 patron_fecha3 = r"^\s*\d{2}:\d{2}:\d{2}\s+\d{2}/\d{2}/\d{4}\s*$" #Tercer formato de la fecha
 
+patron_coord1 = r"^\s*([+-]?\d+\.\d+)\s*,\s*([+-]?\d+\.\d+)\s*$" #Primer formato de las coordenadas
+patron_coord2 = r"^\s*(\d+)°(\d+)'(\d+\.\d{4})\"\s*([NS])\s*,\s*(\d+)°(\d+)'(\d+\.\d{4})\"\s*([EW])\s*$" #Segundo formato de las coordenadas
+patron_coord3 = r"^\s*(\d{3})(\d{2})(\d{2}\.\d{4})([NS])(\d{3})(\d{2})(\d{2}\.\d{4})([EW])\s*$" #Tercer formato de las coordenadas
 
 #Comprobar expresiones regulares
 re_telefono_sucio = re.compile(patron_telefono)
@@ -16,6 +19,10 @@ re_nif_sucio = re.compile(patron_nif)
 re_f1_sucia = re.compile(patron_fecha1)
 re_f2_sucia = re.compile(patron_fecha2)
 re_f3_sucia = re.compile(patron_fecha3)
+
+re_coord1_sucia = re.compile(patron_coord1)
+re_coord2_sucia = re.compile(patron_coord2)
+re_coord3_sucia = re.compile(patron_coord3)
 
 #Función telefono
 def validar_telefono(telefono):
@@ -72,7 +79,7 @@ def validar_nif(nif):
             else:
                 return None 
 
-
+#Funciones auxiliares para fecha
 MESES = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6, "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12,}
 
 def es_bisiesto(a):
@@ -85,7 +92,7 @@ def dias_meses(m, a):
         return 30
     return 29 if es_bisiesto(a) else 28
 
-
+#Funcion fecha
 def validar_fecha(fecha: str):
     fecha_limpia = fecha.strip()
     coincidencia1 = re_f1_sucia.fullmatch(fecha_limpia)
@@ -155,6 +162,84 @@ def validar_fecha(fecha: str):
     return {"a": a, "m": m, "d": d, "H": H, "M": M, "S": S}
 
 
+def validar_coord(coord):
+
+    coord_limpia = coord.strip()
+    coincidencia1 = re_coord1_sucia.fullmatch(coord_limpia)
+    coincidencia2 = re_coord2_sucia.fullmatch(coord_limpia)
+    coincidencia3 = re_coord3_sucia.fullmatch(coord_limpia)
+
+    #Formato 1
+    if coincidencia1:
+
+        lat = float(coincidencia1.group(1))
+        lon = float(coincidencia1.group(2))
+
+        if not (-90 <= lat <= 90):
+            return None
+        if not (-180 <= lon <= 180):
+            return None
+
+        return {"lat": lat, "lon": lon}
+    
+    #Formato 2
+    elif coincidencia2:
+
+        g_lat, m_lat, s_lat, l_lat = coincidencia2.group(1), coincidencia2.group(2), coincidencia2.group(3), coincidencia2.group(4)
+        g_lon, m_lon, s_lon, l_lon = coincidencia2.group(5), coincidencia2.group(6), coincidencia2.group(7), coincidencia2.group(8)
+
+        g_lat, m_lat, s_lat = int(g_lat), int(m_lat), float(s_lat)
+        g_lon, m_lon, s_lon = int(g_lon), int(m_lon), float(s_lon)
+
+        if not (0 <= m_lat < 60 and 0 <= s_lat < 60):
+            return None
+        if not (0 <= m_lon < 60 and 0 <= s_lon < 60):
+            return None
+        
+        lat = g_lat + (m_lat/60) + (s_lat/3600)
+        lon = g_lon + (m_lon/60) + (s_lon/3600)
+
+        if l_lat == 'S':
+            lat = -lat
+        if l_lon == 'W':
+            lon = -lon
+
+        if not (-90 <= lat <= 90):
+            return None
+        if not (-180 <= lon <= 180):
+            return None
+        
+        return {"lat": lat, "lon": lon}
+
+    elif coincidencia3:
+
+        g_lat, m_lat, s_lat, l_lat = coincidencia3.group(1), coincidencia3.group(2), coincidencia3.group(3), coincidencia3.group(4)
+        g_lon, m_lon, s_lon, l_lon = coincidencia3.group(5), coincidencia3.group(6), coincidencia3.group(7), coincidencia3.group(8)
+
+        g_lat, m_lat, s_lat = int(g_lat), int(m_lat), float(s_lat)
+        g_lon, m_lon, s_lon = int(g_lon), int(m_lon), float(s_lon)
+
+        if not (0 <= m_lat < 60 and 0 <= s_lat < 60):
+            return None
+        if not (0 <= m_lon < 60 and 0 <= s_lon < 60):
+            return None
+        
+        lat = g_lat + (m_lat/60) + (s_lat/3600)
+        lon = g_lon + (m_lon/60) + (s_lon/3600)
+
+        if l_lat == 'S':
+            lat = -lat
+        if l_lon == 'W':
+            lon = -lon
+
+        if not (-90 <= lat <= 90):
+            return None
+        if not (-180 <= lon <= 180):
+            return None
+        
+        return {"lat": lat, "lon": lon}        
+
+
 def extraer_linea(linea: str):
 
     partes = linea.split(";")
@@ -182,10 +267,15 @@ def extraer_linea(linea: str):
     fecha_n = validar_fecha(fecha_linea)
     if fecha_n is None:
         return None
+    
+    #Normalizar coordenadas
+    coord_n = validar_coord(coord_linea)
+    if coord_n is None:
+        return None
 
     return {
 
-        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_n, "coord": coord_linea, "producto": prod_linea, "precio": precio_linea }       
+        "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_n, "coord": coord_n, "producto": prod_linea, "precio": precio_linea }       
 
 
 

@@ -51,6 +51,7 @@ def main():
         except:
             sys.exit(1)
 
+    #Fecha
     elif comando == "-stime":
 
         if len(sys.argv) < 5:
