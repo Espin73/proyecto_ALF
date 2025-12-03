@@ -1,7 +1,7 @@
 import re
 
 #Expresiones regulares 
-patron_telefono = r"^\s*(\d{9})\s*$"
+patron_telefono = r"^\s*(?:\+34)?(\d{9})\s*$"
 patron_nif = r"^\s*(?:\d{8}[A-Z]|[XYZ]\d{7}[A-Z])\s*$"
 
 patron_fecha1 = r"^\s*\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}\s*$" #Primer formato de la fecha
@@ -278,5 +278,60 @@ def extraer_linea(linea: str):
         "telefono_normalizado": telef_n, "telefono_original": telef_linea, "nif": nif_n, "fecha": fecha_n, "coord": coord_n, "producto": prod_linea, "precio": precio_linea }       
 
 
-
+def formatear_fecha(fecha, formato=3):
+    if formato == 1:
+        return f"{fecha['a']:04d}-{fecha['m']:02d}-{fecha['d']:02d} {fecha['H']:02d}:{fecha['M']:02d}"
     
+    elif formato == 2:
+        
+        nombres_meses = list(MESES.keys())
+        nombre_mes = nombres_meses[fecha['m'] - 1]
+
+        hora = fecha['H']
+        ampm = "AM"
+        
+        if hora >= 12:
+            ampm = "PM"
+            if hora > 12:
+                hora -= 12
+        if hora == 0:
+            hora = 12
+            
+        return f"{nombre_mes} {fecha['d']}, {fecha['a']} {hora}:{fecha['M']:02d} {ampm}"
+    
+    else:
+        return f"{fecha['H']:02d}:{fecha['M']:02d}:{fecha['S']:02d} {fecha['d']:02d}/{fecha['m']:02d}/{fecha['a']:04d}"
+    
+def decimal_a_sexagesimal(valor):
+    
+    val_abs = abs(valor)
+    grados = int(val_abs)
+    resto_min = (val_abs - grados) * 60
+    minutos = int(resto_min)
+    segundos = (resto_min - minutos) * 60
+    return grados, minutos, segundos
+
+def formatear_coord(coord, formato=1):
+
+    lat = coord['lat']
+    lon = coord['lon']
+
+    if formato == 1:
+        return f"{lat},{lon}"
+
+    g_lat, m_lat, s_lat = decimal_a_sexagesimal(lat)
+    g_lon, m_lon, s_lon = decimal_a_sexagesimal(lon)
+    
+    letra_lat = 'N' if lat >= 0 else 'S'
+    letra_lon = 'E' if lon >= 0 else 'W'
+
+    if formato == 2:
+        lat_str = f'{g_lat}° {m_lat}\' {s_lat:.4f}" {letra_lat}'
+        lon_str = f'{g_lon}° {m_lon}\' {s_lon:.4f}" {letra_lon}'
+        return f"{lat_str}, {lon_str}"
+
+    elif formato == 3:
+
+        lat_str = f"{g_lat:03d}{m_lat:02d}{s_lat:07.4f}{letra_lat}"
+        lon_str = f"{g_lon:03d}{m_lon:02d}{s_lon:07.4f}{letra_lon}"
+        return f"{lat_str}{lon_str}"
