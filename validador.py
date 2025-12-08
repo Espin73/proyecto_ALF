@@ -111,12 +111,12 @@ def validar_fecha(fecha: str):
     elif coincidencia2:
 
         indice_ampm = fecha_limpia.rfind(" ")
-        sin_ampm = fecha_limpia[:idice_ampm]
-        ampm = fecha_limpia[idice_ampm+1:]
+        sin_ampm = fecha_limpia[:indice_ampm]
+        ampm = fecha_limpia[indice_ampm+1:]
 
-        idice_hora = sin_ampm.rfind(" ")
-        trozo_fecha = sin_ampm[:idice_hora]
-        trozo_hora = sin_ampm[idice_hora+1:]
+        indice_hora = sin_ampm.rfind(" ")
+        trozo_fecha = sin_ampm[:indice_hora]
+        trozo_hora = sin_ampm[indice_hora+1:]
 
         mes_nombre, resto = trozo_fecha.split(" ",1)
         d_str, a_str = resto.replace(",", " ").split()
