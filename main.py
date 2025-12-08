@@ -1,5 +1,5 @@
 import sys
-from validador import extraer_linea, validar_telefono, validar_nif, validar_fecha
+from validador import extraer_linea, validar_telefono, validar_nif, validar_fecha, formatear_fecha, formatear_coord
 
 
 def main():
@@ -23,8 +23,8 @@ def main():
            sys.exit(1)
        
        try:
-           with open(fichero, encoding="utf-8") as f:
-               for linea in f:
+            f = open(fichero, encoding="utf-8")
+            for linea in f:
                     
                     linea_extraida = extraer_linea(linea)
                     if linea_extraida is None:
@@ -32,6 +32,7 @@ def main():
 
                     if linea_extraida["telefono_normalizado"] == telef:
                         print(linea.rstrip("\n"))
+            f.close()
        except:
            sys.exit(1)
 
@@ -48,8 +49,8 @@ def main():
             sys.exit(1)
         
         try:
-            with open(fichero, encoding="utf-8") as f:
-                for linea in f:
+            f = open(fichero, encoding="utf-8")
+            for linea in f:
                     
                     linea_extraida = extraer_linea(linea)
                     if linea_extraida is None:
@@ -57,6 +58,7 @@ def main():
 
                     if linea_extraida["nif"] == nif_normalizado:
                         print(linea.rstrip("\n"))
+            f.close()
         except:
             sys.exit(1)
 
@@ -77,8 +79,8 @@ def main():
             sys.exit(1)
         
         try:
-            with open(fichero, encoding="utf-8") as f:
-                for linea in f:
+            f = open(fichero, encoding="utf-8")
+            for linea in f:
                     
                     linea_extraida = extraer_linea(linea)
                     if linea_extraida is None:
@@ -92,10 +94,11 @@ def main():
                     
                     if desde_valores <= fecha_valores <= hasta_valores:
                         print(linea.rstrip("\n"))
+            f.close()
         except:
             sys.exit(1)
 
-
+    #Normalización -n
     elif comando == "-n":
         
         if len(sys.argv) < 3:
@@ -118,11 +121,9 @@ def main():
              sys.exit(1)
 
         try:
-
-            from validador import formatear_fecha, formatear_coord
             
-            with open(fichero, encoding="utf-8") as f:
-                for linea in f:
+            f = open(fichero, encoding="utf-8")
+            for linea in f:
 
                     datos = extraer_linea(linea)
                     
@@ -139,6 +140,7 @@ def main():
                     precio_str = datos["precio"]
 
                     print(f"{telf_str} ; {nif_str} ; {fecha_str} ; {coord_str} ; {prod_str} ; {precio_str}")
+            f.close()
 
         except Exception:
             sys.exit(1) 

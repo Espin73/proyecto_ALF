@@ -110,8 +110,13 @@ def validar_fecha(fecha: str):
     #Formato 2
     elif coincidencia2:
 
-        sin_ampm, ampm = fecha_limpia.rsplit(" ", 1)
-        trozo_fecha, trozo_hora = sin_ampm.rsplit(" ", 1)
+        indice_ampm = fecha_limpia.rfind(" ")
+        sin_ampm = fecha_limpia[:idice_ampm]
+        ampm = fecha_limpia[idice_ampm+1:]
+
+        idice_hora = sin_ampm.rfind(" ")
+        trozo_fecha = sin_ampm[:idice_hora]
+        trozo_hora = sin_ampm[idice_hora+1:]
 
         mes_nombre, resto = trozo_fecha.split(" ",1)
         d_str, a_str = resto.replace(",", " ").split()
@@ -119,7 +124,7 @@ def validar_fecha(fecha: str):
         S_str = "0"
         
         #Por si nos dan un mes que no esté en el formato correcto
-        mes_nombre = mes_nombre.capitalize()
+        mes_nombre = mes_nombre[0].upper() + mes_nombre[1:].lower()
         if mes_nombre not in MESES:
             return None
         m_str = str(MESES[mes_nombre])
